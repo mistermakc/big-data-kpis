@@ -40,6 +40,7 @@ ny_pepsico_df = data['ny_pepsico_df']
 pepsico_df = data['pepsico_df']
 ny_pepsico_item_weekly_df = data['ny_pepsico_item_weekly_df']
 vendor_revenue = data['vendor_revenue']
+st.write(pepsico_df)
 
 # Defining multiselection in Streamlit for fashion news
 # Convert your date columns to datetime format
