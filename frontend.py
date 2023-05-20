@@ -96,20 +96,24 @@ with st.container():
 
 #####
 
-# Filter only the required columns: 'Market_Name' and 'Total_Revenue'
-chart_data = filter_top_regions_df[['Market_Name', 'Total_Revenue']].copy()
+# Group by 'Market_Name' and sum 'Total_Revenue'
+grouped_data = filter_top_regions_df.groupby('Market_Name')['Total_Revenue'].sum().reset_index()
 
 # Rename the columns
-chart_data.columns = ['Market Name', 'Revenue']
+grouped_data.columns = ['Market Name', 'Total Revenue']
 
-# Sort the data in descending order
-chart_data = chart_data.sort_values('Revenue', ascending=False)
+# Sort the data in descending order and take the top 10
+grouped_data = grouped_data.sort_values('Total Revenue', ascending=False).head(10)
 
-chart_top_regions = alt.Chart(chart_data).mark_bar(color='#1E4B92').encode(
-    x=alt.X('Market Name:N', title='Market Name', sort='-y'),  # sort bars by 'Revenue'
-    y=alt.Y('Revenue:Q', title='Revenue'),
+# Print only the city names
+print(grouped_data['Market Name'])
+
+# Create the chart
+chart_top_regions = alt.Chart(grouped_data).mark_bar(color='#1E4B92').encode(
+    x=alt.X('Market Name:N', title='Market Name', sort='-y'),  # sort bars by 'Total Revenue'
+    y=alt.Y('Total Revenue:Q', title='Total Revenue'),
 ).properties(
-    title='Top 3 Markets by Revenue',
+    title='Top 10 Markets by Total Revenue',
     height=368,
     width=alt.Step(100)  # make the chart responsive
 ).configure_axis(
@@ -123,44 +127,6 @@ chart_top_regions = alt.Chart(chart_data).mark_bar(color='#1E4B92').encode(
 
 
 
-###### NEXT CHART
-
-# Take the top 4 vendors and the rest as "others"
-top_4_vendors = vendor_revenue.iloc[:4].copy()
-rest_vendors = vendor_revenue.iloc[4:].copy()
-
-# Sum the market shares of the rest of the vendors
-others_market_share = rest_vendors["market_share"].sum()
-
-# Add a new row for "others"
-others_row = pd.DataFrame({"L3": ["Others"], "DOLLARS": [0], "market_share": [others_market_share]})
-top_4_vendors = top_4_vendors.append(others_row, ignore_index=True)
-
-# Create a DataFrame suitable for Altair
-chart_data = top_4_vendors[['L3', 'market_share']].copy()
-chart_data['market_share'] = chart_data['market_share'] * 100  # Convert market share to percentage
-chart_data.columns = ['Vendor', 'Market Share']
-
-# Sort the data in descending order
-chart_data = chart_data.sort_values('Market Share', ascending=False)
-
-# Create a bar chart
-chart_market_share = alt.Chart(chart_data).mark_bar(color='#1E4B92').encode(
-    x=alt.X('Market Share:Q', title='Market Share (%)'),
-    y=alt.Y('Vendor:N', title='Vendor', sort='-x'),  # Sort bars by 'Market Share'
-    tooltip=[alt.Tooltip('Vendor:N', title='Vendor'), alt.Tooltip('Market Share:Q', title='Market Share', format='.2f')]
-).properties(
-    title='Market Share by Vendor',
-    height=368,
-    width=alt.Step(100)  # Make the chart responsive
-).configure_axis(
-    labelFontSize=12,
-    titleFontSize=14,
-).configure_title(
-    fontSize=16,
-    font='Arial',
-    anchor='middle'
-)
 
 #### NEXT CHART
 
@@ -232,12 +198,7 @@ chart3 = alt.Chart(ny_pepsico_item_weekly_df.reset_index()).mark_line().encode(
 tab1, tab2, tab3 = st.tabs(["Market", "New York", "Pepsico"])
 
 with tab1:
-    # Displaying the two charts side by side
-    col1, col2 = st.columns(2, gap="small")
-    with col1:
-        st.altair_chart(chart_top_regions, use_container_width=True)
-    with col2:
-        st.altair_chart(chart_market_share, use_container_width=True)
+    st.altair_chart(chart_top_regions, use_container_width=True)
 
 with tab2:
     # Displaying the two charts side by side
