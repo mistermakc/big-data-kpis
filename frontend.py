@@ -26,57 +26,54 @@ st.sidebar.image("data/images/logo.png", output_format='PNG', use_column_width=T
 @st.cache_data
 def load_data():
     dataframes = {
-        'ny_df': pd.read_csv('data/output/ny_df.csv'),
+        'market_share_df': pd.read_csv('data/output/market_share_df.csv'),
         'ny_pepsico_df': pd.read_csv('data/output/ny_pepsico_df.csv'),
-        'pepsico_df': pd.read_csv('data/output/pepsico_df.csv'),
         'ny_pepsico_item_weekly_df': pd.read_csv('data/output/ny_pepsico_item_weekly_df.csv'),
+        'ny_pepsico_top_customers_df': pd.read_csv('data/output/ny_pepsico_top_customers_df.csv'),
+        'ny_pepsico_vsod_df': pd.read_csv('data/output/ny_pepsico_vsod_df.csv'),
+        'ny_promo_pct_df': pd.read_csv('data/output/ny_promo_pct_df.csv'),
+        'ny_top_products_df': pd.read_csv('data/output/ny_top_products_df.csv'),
+        'yearly_totals_df': pd.read_csv('data/output/yearly_totals_df.csv'),
         'vendor_revenue': pd.read_csv('data/output/vendor_revenue.csv'),
+        'top_regions_df': pd.read_csv('data/output/top_regions_df.csv'),
     }
     return dataframes
 
 data = load_data()
-ny_df = data['ny_df']
+market_share_df = data['market_share_df']
 ny_pepsico_df = data['ny_pepsico_df']
-pepsico_df = data['pepsico_df']
+ny_pepsico_top_customers_df = data['ny_pepsico_top_customers_df']
 ny_pepsico_item_weekly_df = data['ny_pepsico_item_weekly_df']
+ny_promo_pct_df = data['ny_promo_pct_df']
+ny_top_products_df = data['ny_top_products_df']
+yearly_totals_df = data['yearly_totals_df']
+top_regions_df = data['top_regions_df']
 vendor_revenue = data['vendor_revenue']
-st.table(pepsico_df)
 
-# Defining multiselection in Streamlit for fashion news
-# Convert your date columns to datetime format
-pepsico_df['Calendar week starting on'] = pd.to_datetime(pepsico_df['Calendar week starting on'])
-pepsico_df['Calendar week ending on'] = pd.to_datetime(pepsico_df['Calendar week ending on'])
-
-# Extract all unique years from both columns
-start_years = pepsico_df['Calendar week starting on'].dt.year.unique().tolist()
-end_years = pepsico_df['Calendar week ending on'].dt.year.unique().tolist()
-
-# Combine and deduplicate the year lists
-all_years = list(set(start_years + end_years))
+# Get the unique years present in the DataFrame
+unique_years = sorted(list(ny_pepsico_df['YEAR'].unique()))
 
 # Use the years as options for the multiselect widget
 selected_years = st.sidebar.multiselect(
     label="YEAR",
-    options=all_years,
-    default=all_years,
+    options=unique_years,
+    default=unique_years,
     key="filter_years"
 )
 
-# Filter the DataFrame to include only selected_years data
-selected_years_df = pepsico_df[
-    pepsico_df['Calendar week starting on'].dt.year.isin(selected_years) |
-    pepsico_df['Calendar week ending on'].dt.year.isin(selected_years)
-]
-
-# Filter the DataFrame to include only selected_years data
-selected_years_df = pepsico_df[
-    pepsico_df['Calendar week starting on'].dt.year.isin(selected_years) |
-    pepsico_df['Calendar week ending on'].dt.year.isin(selected_years)
-]
+# Filter the DataFrame based on the selected years
+filter_ny_pepsico_df = ny_pepsico_df[ny_pepsico_df['YEAR'].isin(selected_years)]
+filter_market_share_df = market_share_df[market_share_df['YEAR'].isin(selected_years)]
+filter_top_regions_df = top_regions_df[top_regions_df['YEAR'].isin(selected_years)]
 
 # Calculate total volume and revenue for selected years
-total_volume = round(selected_years_df['UNITS'].sum(), 0)
-total_revenue = round(selected_years_df['DOLLARS'].sum(), 0)
+total_volume = round(filter_ny_pepsico_df['UNITS'].sum(), 0)
+total_revenue = round(filter_ny_pepsico_df['DOLLARS'].sum(), 0)
+
+# Calculate total market share
+total_market_share_pepsico = filter_market_share_df[filter_market_share_df['L3'] == 'PEPSICO INC']['DOLLARS'].sum()
+total_market_share_all = filter_market_share_df['DOLLARS'].sum()
+total_marketshare = (total_market_share_pepsico / total_market_share_all) * 100
 
 # Display total volume and revenue in Streamlit
 with st.container():
@@ -92,12 +89,17 @@ with st.container():
         value = "{:,.0f}".format(total_volume),
         #delta = "{:,.2f}%".format(total_revenue),
     )
+    kpi3.metric(
+        label = "Total Market Share",
+        value = "{:,.2f}%".format(total_marketshare),
+    )
 
-# Find the top 3 regions by revenue and round the values
-top_3_regions_df = selected_years_df.groupby('Market_Name')['DOLLARS'].sum().nlargest(3).round(0)
+#####
 
-# Create a bar chart for the top 3 markets in Streamlit using Altair
-chart_data = pd.DataFrame(top_3_regions_df).reset_index()
+# Filter only the required columns: 'Market_Name' and 'Total_Revenue'
+chart_data = filter_top_regions_df[['Market_Name', 'Total_Revenue']].copy()
+
+# Rename the columns
 chart_data.columns = ['Market Name', 'Revenue']
 
 # Sort the data in descending order
@@ -118,6 +120,8 @@ chart_top_regions = alt.Chart(chart_data).mark_bar(color='#1E4B92').encode(
     font='Arial',
     anchor='middle'
 )
+
+
 
 ###### NEXT CHART
 
@@ -225,7 +229,7 @@ chart3 = alt.Chart(ny_pepsico_item_weekly_df.reset_index()).mark_line().encode(
 
 
 # Creating tabs to display different KPIs
-tab1, tab2, tab3 = st.tabs(["Revenue", "Marketing", "Resources"])
+tab1, tab2, tab3 = st.tabs(["Market", "New York", "Pepsico"])
 
 with tab1:
     # Displaying the two charts side by side
