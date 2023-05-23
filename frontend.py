@@ -5,10 +5,10 @@ from PIL import Image
 import altair as alt
 
 # Setting theme for streamlit
-image = Image.open('data/images/logo.png')
+favicon = Image.open('data/images/favicon.png')
 st.set_page_config(
     page_title="Pepsico Inc. Dashboard", 
-    page_icon=image, 
+    page_icon=favicon, 
     layout="wide", 
     initial_sidebar_state="expanded",
 )
@@ -69,7 +69,7 @@ unique_upc = sorted(list(ny_pepsico_df['UPC'].unique()))
 selected_upc = st.sidebar.selectbox(
     label="UPC",
     options=unique_upc,
-    index=0,  # Optional: this sets the default selected index
+    index=22,
     key="filter_upc"
 )
 
@@ -83,7 +83,7 @@ unique_retailers = sorted(list(filter_ny_pepsico_upc_df['MskdName'].unique()))
 selected_retailer = st.sidebar.selectbox(
     label="RETAILER",
     options=unique_retailers,
-    index=0,  # Optional: this sets the default selected index
+    index=3,  
     key="filter_retailer"
 )
 
@@ -319,7 +319,7 @@ chart_advertising = alt.layer(chart_average_pr, chart_average_marketing).resolve
 )
 
 chart_average_price = base.mark_line().encode(
-    alt.Y('Avg Price:Q', axis=alt.Axis(title='Average Price ($)', titleColor='orange')),
+    alt.Y('Avg Price:Q', axis=alt.Axis(title='Average Price ($)', titleColor='orange'),scale=alt.Scale(zero=False)),
     color=alt.value('orange'),
     tooltip=['Avg Price', 'Calendar week starting on']
 ).properties(title={"text": f"Avg. Price for Item {selected_upc} for {selected_retailer}", "anchor": "middle"})
