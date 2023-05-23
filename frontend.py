@@ -23,7 +23,6 @@ st.sidebar.image("data/images/logo.png", output_format='PNG', use_column_width=T
 @st.cache_data
 def load_data():
     dataframes = {
-        'market_share_df': pd.read_csv('data/output/market_share_df.csv'),
         'ny_pepsico_df': pd.read_csv('data/output/ny_pepsico_df.csv'),
         'ny_pepsico_item_weekly_df': pd.read_csv('data/output/ny_pepsico_item_weekly_df.csv'),
         'ny_pepsico_top_customers_df': pd.read_csv('data/output/ny_pepsico_top_customers_df.csv'),
@@ -32,11 +31,11 @@ def load_data():
         'ny_top_products_df': pd.read_csv('data/output/ny_top_products_df.csv'),
         'yearly_totals_df': pd.read_csv('data/output/yearly_totals_df.csv'),
         'top_regions_df': pd.read_csv('data/output/top_regions_df.csv'),
+        'market_totals_df': pd.read_csv('data/output/market_totals_df.csv'),
     }
     return dataframes
 
 data = load_data()
-market_share_df = data['market_share_df']
 ny_pepsico_df = data['ny_pepsico_df']
 ny_pepsico_top_customers_df = data['ny_pepsico_top_customers_df']
 ny_pepsico_item_weekly_df = data['ny_pepsico_item_weekly_df']
@@ -45,6 +44,7 @@ ny_top_products_df = data['ny_top_products_df']
 yearly_totals_df = data['yearly_totals_df']
 top_regions_df = data['top_regions_df']
 ny_pepsico_vsod_df = data['ny_pepsico_vsod_df']
+market_totals_df = data['market_totals_df']
 
 # Get the unique years present in the DataFrame
 unique_years = sorted(list(ny_pepsico_df['YEAR'].unique()))
@@ -92,20 +92,20 @@ selected_product_number = st.sidebar.slider("NO. PRODUCTS", 3, 20, 10)
 
 # Filter the DataFrame based on the selected years
 filter_ny_pepsico_df = ny_pepsico_df[ny_pepsico_df['YEAR'].isin(selected_years)]
-filter_market_share_df = market_share_df[market_share_df['YEAR'].isin(selected_years)]
 filter_top_regions_df = top_regions_df[top_regions_df['YEAR'].isin(selected_years)]
 filter_ny_top_products_df = ny_top_products_df[ny_top_products_df['YEAR'].isin(selected_years)]
 filter_ny_pepsico_vsod_df = ny_pepsico_vsod_df[ny_pepsico_vsod_df['YEAR'].isin(selected_years)]
 filter_ny_promo_pct_df = ny_promo_pct_df[ny_promo_pct_df['YEAR'].isin(selected_years)]
+filter_market_totals_df = market_totals_df[market_totals_df['YEAR'].isin(selected_years)]
 
 # Calculate total volume, revenue and vsod for selected years
-total_volume = round(filter_ny_pepsico_df['UNITS'].sum(), 0)
-total_revenue = round(filter_ny_pepsico_df['DOLLARS'].sum(), 0)
+total_volume = round(filter_market_totals_df[filter_market_totals_df['L3'] == 'PEPSICO INC']['total_volume'].sum(), 0)
+total_revenue = round(filter_market_totals_df[filter_market_totals_df['L3'] == 'PEPSICO INC']['total_revenue'].sum(), 0)
 total_volume_sold_on_deal = (filter_ny_pepsico_vsod_df['VSoD'].sum() / filter_ny_pepsico_vsod_df['TotalVolume'].sum()) * 100
 
 # Calculate total market share
-total_market_share_pepsico = filter_market_share_df[filter_market_share_df['L3'] == 'PEPSICO INC']['DOLLARS'].sum()
-total_market_share_all = filter_market_share_df['DOLLARS'].sum()
+total_market_share_pepsico = filter_market_totals_df[filter_market_totals_df['L3'] == 'PEPSICO INC']['total_revenue'].sum()
+total_market_share_all = filter_market_totals_df['total_revenue'].sum()
 total_marketshare = (total_market_share_pepsico / total_market_share_all) * 100
 
 # Display key kpis
