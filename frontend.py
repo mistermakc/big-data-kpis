@@ -101,7 +101,7 @@ filter_ny_promo_pct_df = ny_promo_pct_df[ny_promo_pct_df['YEAR'].isin(selected_y
 # Calculate total volume, revenue and vsod for selected years
 total_volume = round(filter_ny_pepsico_df['UNITS'].sum(), 0)
 total_revenue = round(filter_ny_pepsico_df['DOLLARS'].sum(), 0)
-total_volume_sold_on_deal = round(filter_ny_pepsico_vsod_df['VSoD'].sum(), 0)
+total_volume_sold_on_deal = (filter_ny_pepsico_vsod_df['VSoD'].sum() / filter_ny_pepsico_vsod_df['TotalVolume'].sum()) * 100
 
 # Calculate total market share
 total_market_share_pepsico = filter_market_share_df[filter_market_share_df['L3'] == 'PEPSICO INC']['DOLLARS'].sum()
@@ -128,7 +128,7 @@ with st.container():
     )
     kpi4.metric(
         label = "Total Volume Sold on Deal",
-        value = "{:,.0f}".format(total_volume_sold_on_deal),
+        value = "{:,.2f}%".format(total_volume_sold_on_deal),
     )
 
 # CHART: TOP REGIONS
