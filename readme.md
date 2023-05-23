@@ -1,6 +1,6 @@
 # Pepsico Inc. Dashboard
 
-Welcome to the Pepsico Inc. dashboard, a powerful solution built using Streamlit to help you explore and analyze the most desired KPIs of H&M. 
+Welcome to the Pepsico Inc. dashboard, a powerful solution built using Streamlit to help you explore and analyze the most desired KPIs of Pepsico Inc. and market trends. 
 
 Try the dashboard: [Pepsico Inc. Dashboard](https://pepsico.streamlit.app)
 
