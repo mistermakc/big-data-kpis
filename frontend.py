@@ -171,7 +171,7 @@ ny_pepsico_top_customers_melt_df = ny_pepsico_top_customers_df.melt('MskdName', 
 # Create bar chart (dollars)
 chart_retailers_revenue = alt.Chart(ny_pepsico_top_customers_melt_df[ny_pepsico_top_customers_melt_df['Metric']=='DOLLARS']).mark_bar().encode(
     x=alt.X('MskdName:N', sort='-y'),
-    y=alt.Y('Value:Q', axis=alt.Axis(title='Revenue ($)')),
+    y=alt.Y('Value:Q', axis=alt.Axis(title='Revenue ($)', titleColor='#1E4B92')),
     color=alt.value('#1E4B92'),
 ).properties(
     title='Top Retailers by Revenue',
@@ -180,7 +180,7 @@ chart_retailers_revenue = alt.Chart(ny_pepsico_top_customers_melt_df[ny_pepsico_
 # Create line chart (units)
 chart_retailers_units = alt.Chart(ny_pepsico_top_customers_melt_df[ny_pepsico_top_customers_melt_df['Metric']=='UNITS']).mark_line().encode(
     x=alt.X('MskdName:N'),
-    y=alt.Y('Value:Q', axis=alt.Axis(title='Units (#)')),
+    y=alt.Y('Value:Q', axis=alt.Axis(title='Units (#)',  titleColor='red')),
     color=alt.value('red'),
 )
 
