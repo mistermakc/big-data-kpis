@@ -23,7 +23,8 @@ st.sidebar.image("data/images/logo.png", output_format='PNG', use_column_width=T
 @st.cache_data
 def load_data():
     dataframes = {
-        'ny_pepsico_df': pd.read_csv('data/output/ny_pepsico_df.csv'),
+        'ny_pepsico_df_2011': pd.read_csv('data/output/ny_pepsico_df_2011.csv'),
+        'ny_pepsico_df_2012': pd.read_csv('data/output/ny_pepsico_df_2012.csv'),
         'ny_pepsico_item_weekly_df': pd.read_csv('data/output/ny_pepsico_item_weekly_df.csv'),
         'ny_pepsico_top_customers_df': pd.read_csv('data/output/ny_pepsico_top_customers_df.csv'),
         'ny_pepsico_vsod_df': pd.read_csv('data/output/ny_pepsico_vsod_df.csv'),
@@ -36,7 +37,9 @@ def load_data():
     return dataframes
 
 data = load_data()
-ny_pepsico_df = data['ny_pepsico_df']
+ny_pepsico_df_2011 = data['ny_pepsico_df_2011']
+ny_pepsico_df_2012 = data['ny_pepsico_df_2012']
+ny_pepsico_df = pd.concat([ny_pepsico_df_2011, ny_pepsico_df_2012], ignore_index=True)
 ny_pepsico_top_customers_df = data['ny_pepsico_top_customers_df']
 ny_pepsico_item_weekly_df = data['ny_pepsico_item_weekly_df']
 ny_promo_pct_df = data['ny_promo_pct_df']
@@ -50,6 +53,9 @@ market_totals_df = data['market_totals_df']
 unique_years = sorted(list(ny_pepsico_df['YEAR'].unique()))
 default_option = unique_years[1]
 
+# Get the unique years present in the DataFrame
+unique_years = sorted(list(ny_pepsico_df['YEAR'].unique()))
+
 # Use the years as options for the multiselect widget
 selected_years = st.sidebar.multiselect(
     label="YEAR",
@@ -60,16 +66,19 @@ selected_years = st.sidebar.multiselect(
 
 if not selected_years:
     st.warning('Please select at least one option.')
-    selection = default_option
+    selected_years = unique_years  # Default to all years if none are selected
 
-# Get the unique UPCs present in the DataFrame
-unique_upc = sorted(list(ny_pepsico_df['UPC'].unique()))
+# Group by UPC, calculate the sum of DOLLARS, sort in descending order and reset the index
+sorted_upc_df = ny_pepsico_df.groupby('UPC').agg({'DOLLARS': 'sum'}).sort_values('DOLLARS', ascending=False).reset_index()
+
+# Get the sorted unique UPCs based on revenue
+unique_upc = sorted_upc_df['UPC'].tolist()
 
 # Use the UPCs as options for the selectbox widget
 selected_upc = st.sidebar.selectbox(
     label="UPC",
     options=unique_upc,
-    index=22,
+    index=min(22, len(unique_upc)-1),  # Prevents IndexError
     key="filter_upc"
 )
 
@@ -79,13 +88,19 @@ filter_ny_pepsico_upc_df = ny_pepsico_df[ny_pepsico_df['UPC'] == selected_upc]
 # Get the unique retailers for the selected UPC
 unique_retailers = sorted(list(filter_ny_pepsico_upc_df['MskdName'].unique()))
 
-# Use the retailers as options for the selectbox widget
-selected_retailer = st.sidebar.selectbox(
-    label="RETAILER",
-    options=unique_retailers,
-    index=3,  
-    key="filter_retailer"
-)
+# Check if there are any unique retailers
+if unique_retailers:
+    # Use the retailers as options for the selectbox widget
+    selected_retailer = st.sidebar.selectbox(
+        label="RETAILER",
+        options=unique_retailers,
+        index=min(3, len(unique_retailers)-1),  # Prevents IndexError
+        key="filter_retailer"
+    )
+else:
+    # If there are no unique retailers, handle the exception here.
+    st.sidebar.write('No retailers available for the selected UPC.')
+    selected_retailer = None
 
 # Add a slider to select the number of top products to display
 selected_product_number = st.sidebar.slider("NO. PRODUCTS", 3, 20, 10)
@@ -193,18 +208,15 @@ chart_top_retailers = alt.layer(chart_retailers_revenue, chart_retailers_units).
 
 # CHART: TOP PRODUCTS
 
-# Group by UPC and PRODUCT TYPE, and sum DOLLARS and UNITS
-ny_top_products_df = filter_ny_top_products_df.groupby(['UPC', 'PRODUCT TYPE']).agg({'DOLLARS': 'sum', 'UNITS': 'sum'}).reset_index()
+# Group by UPC, and sum DOLLARS and UNITS
+ny_top_products_df = filter_ny_top_products_df.groupby('UPC').agg({'DOLLARS': 'sum', 'UNITS': 'sum'}).reset_index()
 
 # Sort by DOLLARS column in descending order and select the top N products
 ny_top_products_df = ny_top_products_df.sort_values('DOLLARS', ascending=False).head(selected_product_number)
 
-# Add a new column to the DataFrame to combine UPC and PRODUCT TYPE, this will be used as labels on the x-axis
-ny_top_products_df['UPC_PRODUCT_TYPE'] = ny_top_products_df['UPC'] + " - " + ny_top_products_df['PRODUCT TYPE']
-
 # Create Altair bar chart
 chart_top_products = alt.Chart(ny_top_products_df).mark_bar().encode(
-    x=alt.X('UPC_PRODUCT_TYPE:N', title='UPC & Product Type', sort='-y'),
+    x=alt.X('UPC:N', title='UPC', sort='-y'),
     y=alt.Y('DOLLARS:Q', title='Revenue ($)'),
     color=alt.value('#1E4B92'),
 ).properties(
