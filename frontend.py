@@ -51,10 +51,6 @@ market_totals_df = data['market_totals_df']
 
 # Get the unique years present in the DataFrame
 unique_years = sorted(list(ny_pepsico_df['YEAR'].unique()))
-default_option = unique_years[1]
-
-# Get the unique years present in the DataFrame
-unique_years = sorted(list(ny_pepsico_df['YEAR'].unique()))
 
 # Use the years as options for the multiselect widget
 selected_years = st.sidebar.multiselect(
@@ -185,7 +181,7 @@ ny_pepsico_top_customers_melt_df = ny_pepsico_top_customers_df.melt('MskdName', 
 
 # Create bar chart (dollars)
 chart_retailers_revenue = alt.Chart(ny_pepsico_top_customers_melt_df[ny_pepsico_top_customers_melt_df['Metric']=='DOLLARS']).mark_bar().encode(
-    x=alt.X('MskdName:N', sort='-y'),
+    x=alt.X('MskdName:N', sort=alt.EncodingSortField(field='Value', order='descending')),
     y=alt.Y('Value:Q', axis=alt.Axis(title='Revenue ($)', titleColor='#1E4B92')),
     color=alt.value('#1E4B92'),
 ).properties(
@@ -225,19 +221,19 @@ chart_top_products = alt.Chart(ny_top_products_df).mark_bar().encode(
     anchor='middle'
 )
 
-# CHART: PROMOTION PER UNIT
+# CHART: PROMOTION PER UPC
 
 # Calculate weighted average of PR using UNITS as weights
-ny_promo_pct_df['WEIGHTED_PR'] = filter_ny_promo_pct_df['PR'] * filter_ny_promo_pct_df['UNITS']
-ny_promo_pct_df = ny_promo_pct_df.groupby('UPC').agg({'WEIGHTED_PR': 'sum', 'UNITS': 'sum'}).reset_index()
+ny_promo_pct_df['WEIGHTED_PR'] = ny_promo_pct_df['PR'] * ny_promo_pct_df['UNITS']
+ny_promo_pct_df = ny_promo_pct_df.groupby('UPC').agg({'WEIGHTED_PR': 'sum', 'UNITS': 'sum', 'DOLLARS': 'sum'}).reset_index()
 ny_promo_pct_df['WEIGHTED_AVG_PR'] = ny_promo_pct_df['WEIGHTED_PR'] / ny_promo_pct_df['UNITS']
 
 # Sort by DOLLARS column in descending order and select the top N products
-ny_promo_pct_df = ny_promo_pct_df.sort_values('WEIGHTED_AVG_PR', ascending=False).head(selected_product_number)
+ny_promo_pct_df = ny_promo_pct_df.sort_values('DOLLARS', ascending=False).head(selected_product_number)
 
 # Create Altair bar chart with filtered products
 chart_promo_pct = alt.Chart(ny_promo_pct_df).mark_bar().encode(
-    x=alt.X('UPC:N', title='UPC', sort='-y'),
+    x=alt.X('UPC:N', title='UPC', sort=alt.EncodingSortField(field='DOLLARS', order='descending')),
     y=alt.Y('WEIGHTED_AVG_PR:Q', title='Average PR (%)'),
     color=alt.value('#1E4B92'),
 ).properties(
