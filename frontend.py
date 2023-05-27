@@ -224,7 +224,7 @@ chart_top_products = alt.Chart(ny_top_products_df).mark_bar().encode(
 # CHART: PROMOTION PER UPC
 
 # Calculate weighted average of PR using UNITS as weights
-ny_promo_pct_df['WEIGHTED_PR'] = ny_promo_pct_df['PR'] * ny_promo_pct_df['UNITS']
+ny_promo_pct_df['WEIGHTED_PR'] = filter_ny_promo_pct_df['PR'] * filter_ny_promo_pct_df['UNITS']
 ny_promo_pct_df = ny_promo_pct_df.groupby('UPC').agg({'WEIGHTED_PR': 'sum', 'UNITS': 'sum', 'DOLLARS': 'sum'}).reset_index()
 ny_promo_pct_df['WEIGHTED_AVG_PR'] = ny_promo_pct_df['WEIGHTED_PR'] / ny_promo_pct_df['UNITS']
 
