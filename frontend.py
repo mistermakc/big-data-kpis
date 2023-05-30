@@ -155,15 +155,16 @@ grouped_data = grouped_data.sort_values('Total Revenue', ascending=False).head(1
 
 # Create the chart
 chart_top_regions = alt.Chart(grouped_data).mark_bar(color='#1E4B92').encode(
-    x=alt.X('Market Name:N', title='Market Name', sort='-y'),  # sort bars by 'Total Revenue'
+    x=alt.X('Market Name:N', title='Market Name', sort='-y'),
     y=alt.Y('Total Revenue:Q', title='Revenue'),
 ).properties(
     title='Top 10 Markets by Revenue',
     height=368,
-    width=alt.Step(100)  # make the chart responsive
+    width=alt.Step(100)
 ).configure_axis(
     labelFontSize=12,
     titleFontSize=14,
+    labelAngle=45,  # Here's where we set the angle
 ).configure_title(
     fontSize=16,
     font='Arial',
@@ -197,7 +198,9 @@ chart_retailers_units = alt.Chart(ny_pepsico_top_customers_melt_df[ny_pepsico_to
 
 # Combine charts
 chart_top_retailers = alt.layer(chart_retailers_revenue, chart_retailers_units).resolve_scale(
-    y='independent' 
+    y='independent'
+).configure_axisX(
+    labelAngle=45  # Here's where we set the angle
 ).configure_title(
     anchor='middle'
 )
@@ -217,6 +220,8 @@ chart_top_products = alt.Chart(ny_top_products_df).mark_bar().encode(
     color=alt.value('#1E4B92'),
 ).properties(
     title='Top Selling Products by Revenue'
+).configure_axis(
+    labelAngle=45  # Here's where we set the angle
 ).configure_title(
     anchor='middle'
 )
@@ -238,6 +243,8 @@ chart_promo_pct = alt.Chart(ny_promo_pct_df).mark_bar().encode(
     color=alt.value('#1E4B92'),
 ).properties(
     title='Average Promotional Activity for Top Products'
+).configure_axis(
+    labelAngle=45  # Here's where we set the angle
 ).configure_title(
     anchor='middle'
 )
