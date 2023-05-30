@@ -155,7 +155,7 @@ grouped_data = grouped_data.sort_values('Total Revenue', ascending=False).head(1
 
 # Create the chart
 chart_top_regions = alt.Chart(grouped_data).mark_bar(color='#1E4B92').encode(
-    x=alt.X('Market Name:N', title='Market Name', sort='-y'),
+    x=alt.X('Market Name:N', title='Market Name', sort='-y', axis=alt.Axis(labelAngle=45)),
     y=alt.Y('Total Revenue:Q', title='Revenue'),
 ).properties(
     title='Top 10 Markets by Revenue',
@@ -164,7 +164,6 @@ chart_top_regions = alt.Chart(grouped_data).mark_bar(color='#1E4B92').encode(
 ).configure_axis(
     labelFontSize=12,
     titleFontSize=14,
-    labelAngle=45,  # Here's where we set the angle
 ).configure_title(
     fontSize=16,
     font='Arial',
@@ -215,13 +214,11 @@ ny_top_products_df = ny_top_products_df.sort_values('DOLLARS', ascending=False).
 
 # Create Altair bar chart
 chart_top_products = alt.Chart(ny_top_products_df).mark_bar().encode(
-    x=alt.X('UPC:N', title='UPC', sort='-y'),
+    x=alt.X('UPC:N', title='UPC', sort='-y', axis=alt.Axis(labelAngle=90)),
     y=alt.Y('DOLLARS:Q', title='Revenue ($)'),
     color=alt.value('#1E4B92'),
 ).properties(
     title='Top Selling Products by Revenue'
-).configure_axis(
-    labelAngle=45  # Here's where we set the angle
 ).configure_title(
     anchor='middle'
 )
@@ -238,13 +235,11 @@ ny_promo_pct_df = ny_promo_pct_df.sort_values('DOLLARS', ascending=False).head(s
 
 # Create Altair bar chart with filtered products
 chart_promo_pct = alt.Chart(ny_promo_pct_df).mark_bar().encode(
-    x=alt.X('UPC:N', title='UPC', sort=alt.EncodingSortField(field='DOLLARS', order='descending')),
+    x=alt.X('UPC:N', title='UPC', axis=alt.Axis(labelAngle=90), sort=alt.EncodingSortField(field='DOLLARS', order='descending')),
     y=alt.Y('WEIGHTED_AVG_PR:Q', title='Average PR (%)'),
     color=alt.value('#1E4B92'),
 ).properties(
     title='Average Promotional Activity for Top Products'
-).configure_axis(
-    labelAngle=45  # Here's where we set the angle
 ).configure_title(
     anchor='middle'
 )
